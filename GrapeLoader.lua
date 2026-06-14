@@ -1,7 +1,7 @@
 --[[
-    葡萄加载器 v2.2
+    葡萄加载器 v2.3
     功能：选择加载奴才军队大亨或午夜追踪者 v2.1
-    点击后：先加载子脚本，等子脚本运行后再销毁自身UI
+    点击后：6.5秒后彻底销毁自身（UI + 🍇 + 所有代码痕迹）
 ]]
 
 local Players = game:GetService("Players")
@@ -14,41 +14,41 @@ local LocalPlayer = Players.LocalPlayer
 -- 保存所有UI元素，用于销毁
 local UIElements = {}
 
--- 销毁加载器自身的UI
-local function DestroySelfUI()
+-- 彻底销毁自身（所有UI + ScreenGui，不留任何痕迹）
+local function DestroySelfComplete()
+    -- 销毁所有记录的UI元素
     for _, element in pairs(UIElements) do
         pcall(function() element:Destroy() end)
     end
+    -- 销毁整个 ScreenGui（包含所有子元素）
+    if UIElements.ScreenGui then
+        pcall(function() UIElements.ScreenGui:Destroy() end)
+    end
+    -- 清空记录
     for k, v in pairs(UIElements) do
         UIElements[k] = nil
     end
-    print("🍇 葡萄加载器 UI 已卸载")
+    print("🍇 葡萄加载器 v2.3 已彻底销毁（无任何残留）")
 end
 
--- 加载奴才军队大亨（等脚本运行后再销毁UI）
+-- 加载奴才军队大亨
 local function LoadNoobArmy()
     -- 先加载子脚本
-    local success, err = pcall(function()
+    pcall(function()
         loadstring(game:HttpGet("https://raw.githubusercontent.com/1457437247-a11y/-hub/refs/heads/main/NoobArmy.lua"))()
     end)
-    -- 无论成功与否，都销毁加载器UI
-    task.wait(0.5)  -- 等待0.5秒确保子脚本已经开始运行
-    DestroySelfUI()
-    if not success then
-        warn("奴才军队大亨加载失败: " .. tostring(err))
-    end
+    -- 6.5秒后彻底销毁加载器
+    task.wait(6.5)
+    DestroySelfComplete()
 end
 
 -- 加载午夜追踪者 v2.1
 local function LoadMidnight()
-    local success, err = pcall(function()
+    pcall(function()
         loadstring(game:HttpGet("https://raw.githubusercontent.com/1457437247-a11y/-hub/refs/heads/main/Midnight.lua"))()
     end)
-    task.wait(0.5)
-    DestroySelfUI()
-    if not success then
-        warn("午夜追踪者加载失败: " .. tostring(err))
-    end
+    task.wait(6.5)
+    DestroySelfComplete()
 end
 
 -- ========== 创建 UI ==========
@@ -86,7 +86,7 @@ UIElements.TitleBar = TitleBar
 local TitleLabel = Instance.new("TextLabel")
 TitleLabel.Size = UDim2.new(0.7,0,1,0)
 TitleLabel.BackgroundTransparency = 1
-TitleLabel.Text = "🍇 葡萄加载器 v2.2"
+TitleLabel.Text = "🍇 葡萄加载器 v2.3"
 TitleLabel.TextColor3 = Color3.fromRGB(255,255,255)
 TitleLabel.Font = Enum.Font.GothamBold
 TitleLabel.TextSize = 18
@@ -260,4 +260,4 @@ FloatingBtn.MouseButton1Click:Connect(function()
     if MainFrame.Visible then AnimateMenuHide() else AnimateMenuShow() end
 end)
 
-print("✅ 葡萄加载器 v2.2 已启动 | 点击按钮后先加载脚本，再自动关闭加载器")
+print("✅ 葡萄加载器 v2.3 已启动 | 点击按钮后6.5秒自动彻底销毁")

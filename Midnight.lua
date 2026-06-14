@@ -1,7 +1,7 @@
 --[[
-    午夜追踪者 v2.1 - PE手机版
+    午夜追踪者 v2.1 (PE手机版)
     功能：自动加速（无需按键）、清除NPC车辆、自动比赛、瞬间完成
-    UI：🍇可拖动悬浮按钮
+    UI：🍇可拖动悬浮按钮 + 弹出菜单
 ]]
 
 local Players = game:GetService("Players")
@@ -21,18 +21,16 @@ local Settings = {
 local SpeedMultiplier = 8
 local PlayerVehicle = nil
 
--- 获取玩家当前乘坐的车辆（增强版）
+-- 获取玩家当前乘坐的车辆
 local function getVehicle()
     local char = LocalPlayer.Character
     if not char then return nil end
-    -- 方法1：通过 VehicleSeat
     local seat = char:FindFirstChild("VehicleSeat")
     if seat and seat.Parent then
         local vehicle = seat.Parent
         if vehicle:IsA("VehicleSeat") then vehicle = vehicle.Parent end
         return vehicle
     end
-    -- 方法2：搜索所有 VehicleSeat
     for _, v in ipairs(workspace:GetDescendants()) do
         if v:IsA("VehicleSeat") and v.Occupant == char then
             return v.Parent
@@ -41,27 +39,7 @@ local function getVehicle()
     return nil
 end
 
--- 速度修改核心函数（手机版：持续自动加速）
-local function ApplySpeedHack()
-    local vehicle = getVehicle()
-    if not vehicle then return end
-    
-    local rootPart = vehicle:FindFirstChild("HumanoidRootPart") or 
-                     vehicle:FindFirstChild("VehicleRootPart") or 
-                     vehicle:FindFirstChildWhichIsA("BasePart")
-    if rootPart then
-        local currentVel = rootPart.AssemblyLinearVelocity
-        local forward = rootPart.CFrame.LookVector
-        -- 如果当前速度小于5，说明可能在起步，给个初始速度
-        local targetSpeed = math.max(currentVel.Magnitude, 30) * SpeedMultiplier
-        local newVelocity = forward * targetSpeed
-        rootPart.AssemblyLinearVelocity = newVelocity
-        -- 让车身更稳定
-        rootPart.AssemblyAngularVelocity = Vector3.new(0, 0, 0)
-    end
-end
-
--- NPC清除
+-- 清除NPC车辆
 local function RemoveNPCVehicles()
     for _, v in ipairs(workspace:GetDescendants()) do
         if v == PlayerVehicle then goto skip end
@@ -75,6 +53,24 @@ local function RemoveNPCVehicles()
             pcall(function() v.Parent:Destroy() end)
         end
         ::skip::
+    end
+end
+
+-- 速度修改（手机版：持续自动加速）
+local function ApplySpeedHack()
+    local vehicle = getVehicle()
+    if not vehicle then return end
+    
+    local rootPart = vehicle:FindFirstChild("HumanoidRootPart") or 
+                     vehicle:FindFirstChild("VehicleRootPart") or 
+                     vehicle:FindFirstChildWhichIsA("BasePart")
+    if rootPart then
+        local currentVel = rootPart.AssemblyLinearVelocity
+        local forward = rootPart.CFrame.LookVector
+        local targetSpeed = math.max(currentVel.Magnitude, 30) * SpeedMultiplier
+        local newVelocity = forward * targetSpeed
+        rootPart.AssemblyLinearVelocity = newVelocity
+        rootPart.AssemblyAngularVelocity = Vector3.new(0, 0, 0)
     end
 end
 
@@ -94,7 +90,7 @@ local function InstantFinishRace()
     end
 end
 
--- 自动开始比赛（手机版触屏适配）
+-- 自动开始比赛
 local function AutoStartRace()
     for _, gui in ipairs(LocalPlayer.PlayerGui:GetDescendants()) do
         if gui:IsA("TextButton") or gui:IsA("ImageButton") then
@@ -102,7 +98,6 @@ local function AutoStartRace()
             if text:find("race") or text:find("start") or text:find("play") or text:find("go") or text:find("开始") then
                 pcall(function() gui:Click() end)
                 task.wait(0.5)
-                -- 模拟触摸前进（如果游戏支持）
                 VirtualInput:SendKeyEvent(true, "W", false, game)
                 task.wait(0.1)
                 VirtualInput:SendKeyEvent(false, "W", false, game)
@@ -111,36 +106,24 @@ local function AutoStartRace()
     end
 end
 
--- 主循环：每帧检测并加速
+-- 主循环
 RunService.Heartbeat:Connect(function()
     PlayerVehicle = getVehicle()
-    
-    if Settings.RemoveNPCs then
-        RemoveNPCVehicles()
-    end
-    
-    if Settings.SpeedHack then
-        ApplySpeedHack()
-    end
-    
-    if Settings.InstantFinish then
-        InstantFinishRace()
-    end
-    
-    if Settings.AutoRace then
-        AutoStartRace()
-    end
+    if Settings.RemoveNPCs then RemoveNPCVehicles() end
+    if Settings.SpeedHack then ApplySpeedHack() end
+    if Settings.InstantFinish then InstantFinishRace() end
+    if Settings.AutoRace then AutoStartRace() end
 end)
 
--- ========== UI（🍇悬浮按钮） ==========
+-- ========== UI（🍇悬浮按钮 + 弹出菜单） ==========
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "MidnightUI"
 ScreenGui.ResetOnSpawn = false
 ScreenGui.Parent = game:GetService("CoreGui")
 
 local MainFrame = Instance.new("Frame")
-MainFrame.Size = UDim2.new(0, 280, 0, 360)
-MainFrame.Position = UDim2.new(0.5, -140, 0.5, -180)
+MainFrame.Size = UDim2.new(0, 280, 0, 340)
+MainFrame.Position = UDim2.new(0.5, -140, 0.5, -170)
 MainFrame.BackgroundColor3 = Color3.fromRGB(20,20,30)
 MainFrame.BackgroundTransparency = 0.15
 MainFrame.BorderSizePixel = 0
@@ -168,7 +151,7 @@ TitleBar.Parent = MainFrame
 local TitleLabel = Instance.new("TextLabel")
 TitleLabel.Size = UDim2.new(0.6,0,1,0)
 TitleLabel.BackgroundTransparency = 1
-TitleLabel.Text = "🌙 午夜追踪者 v2.1 (PE)"
+TitleLabel.Text = "🌙 午夜追踪者 v2.1"
 TitleLabel.TextColor3 = Color3.fromRGB(255,255,255)
 TitleLabel.Font = Enum.Font.GothamBold
 TitleLabel.TextSize = 16
@@ -394,4 +377,4 @@ FloatingBtn.MouseButton1Click:Connect(function()
     MainFrame.Visible = not MainFrame.Visible
 end)
 
-print("✅ 午夜追踪者 v2.1 (PE手机版) 已加载 | 开启'自动加速'后，车辆会自动提速")
+print("✅ 午夜追踪者 v2.1 已加载 | 点击🍇打开菜单 | 开启'自动加速'后车辆自动提速")

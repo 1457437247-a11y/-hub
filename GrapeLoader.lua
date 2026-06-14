@@ -1,7 +1,7 @@
 --[[
-    葡萄加载器 v2.3
+    葡萄加载器 v2.4
     功能：选择加载奴才军队大亨或午夜追踪者 v2.1
-    点击后：6.5秒后彻底销毁自身（UI + 🍇 + 所有代码痕迹）
+    点击✕按钮才彻底销毁自身（UI + 🍇 + 所有代码痕迹）
 ]]
 
 local Players = game:GetService("Players")
@@ -28,18 +28,14 @@ local function DestroySelfComplete()
     for k, v in pairs(UIElements) do
         UIElements[k] = nil
     end
-    print("🍇 葡萄加载器 v2.3 已彻底销毁（无任何残留）")
+    print("🍇 葡萄加载器 v2.4 已彻底销毁（无任何残留）")
 end
 
 -- 加载奴才军队大亨
 local function LoadNoobArmy()
-    -- 先加载子脚本
     pcall(function()
         loadstring(game:HttpGet("https://raw.githubusercontent.com/1457437247-a11y/-hub/refs/heads/main/NoobArmy.lua"))()
     end)
-    -- 6.5秒后彻底销毁加载器
-    task.wait(6.5)
-    DestroySelfComplete()
 end
 
 -- 加载午夜追踪者 v2.1
@@ -47,8 +43,6 @@ local function LoadMidnight()
     pcall(function()
         loadstring(game:HttpGet("https://raw.githubusercontent.com/1457437247-a11y/-hub/refs/heads/main/Midnight.lua"))()
     end)
-    task.wait(6.5)
-    DestroySelfComplete()
 end
 
 -- ========== 创建 UI ==========
@@ -86,7 +80,7 @@ UIElements.TitleBar = TitleBar
 local TitleLabel = Instance.new("TextLabel")
 TitleLabel.Size = UDim2.new(0.7,0,1,0)
 TitleLabel.BackgroundTransparency = 1
-TitleLabel.Text = "🍇 葡萄加载器 v2.3"
+TitleLabel.Text = "🍇 葡萄加载器 v2.4"
 TitleLabel.TextColor3 = Color3.fromRGB(255,255,255)
 TitleLabel.Font = Enum.Font.GothamBold
 TitleLabel.TextSize = 18
@@ -95,6 +89,7 @@ TitleLabel.Position = UDim2.new(0,15,0,0)
 TitleLabel.Parent = TitleBar
 UIElements.TitleLabel = TitleLabel
 
+-- 红色关闭按钮（点击后彻底销毁加载器）
 local CloseBtn = Instance.new("TextButton")
 CloseBtn.Size = UDim2.new(0,30,0,30)
 CloseBtn.Position = UDim2.new(1,-40,0,5)
@@ -108,6 +103,7 @@ local closeCorner = Instance.new("UICorner")
 closeCorner.CornerRadius = UDim.new(0,6)
 closeCorner.Parent = CloseBtn
 CloseBtn.Parent = TitleBar
+CloseBtn.MouseButton1Click:Connect(DestroySelfComplete)
 UIElements.CloseBtn = CloseBtn
 
 local Container = Instance.new("Frame")
@@ -214,9 +210,7 @@ local function AnimateMenuHide()
     hideTween.Completed:Connect(function() MainFrame.Visible = false end)
 end
 
-CloseBtn.MouseButton1Click:Connect(AnimateMenuHide)
-
--- 🍇 悬浮按钮
+-- 🍇 悬浮按钮（点击打开/关闭菜单）
 local FloatingBtn = Instance.new("TextButton")
 FloatingBtn.Size = UDim2.new(0,65,0,65)
 FloatingBtn.Position = UDim2.new(1,-80,0,100)
@@ -260,4 +254,4 @@ FloatingBtn.MouseButton1Click:Connect(function()
     if MainFrame.Visible then AnimateMenuHide() else AnimateMenuShow() end
 end)
 
-print("✅ 葡萄加载器 v2.3 已启动 | 点击按钮后6.5秒自动彻底销毁")
+print("✅ 葡萄加载器 v2.4 已启动 | 点击右上角✕按钮彻底销毁加载器")

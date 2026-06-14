@@ -1,7 +1,7 @@
 --[[
-    葡萄加载器 v1.0
+    葡萄加载器 v2.0
     功能：选择加载奴才军队大亨或午夜追踪者
-    UI：🍇可拖动悬浮按钮
+    点击后：销毁自身所有UI和🍇，停止自身代码，子脚本正常加载
 ]]
 
 local Players = game:GetService("Players")
@@ -11,21 +11,50 @@ local TweenService = game:GetService("TweenService")
 local Camera = workspace.CurrentCamera
 local LocalPlayer = Players.LocalPlayer
 
--- 加载奴才军队大亨（使用你提供的链接）
+-- 保存所有UI元素，用于销毁
+local UIElements = {}
+
+-- 完全销毁自身（UI + 🍇 + 停止所有连接）
+local function DestroySelf()
+    -- 销毁所有UI元素
+    for _, element in pairs(UIElements) do
+        pcall(function() element:Destroy() end)
+    end
+    -- 销毁主 ScreenGui
+    if UIElements.ScreenGui then
+        pcall(function() UIElements.ScreenGui:Destroy() end)
+    end
+    -- 清空所有连接（通过给变量赋值nil让GC回收）
+    for k, v in pairs(UIElements) do
+        UIElements[k] = nil
+    end
+    print("🍇 葡萄加载器已完全卸载")
+end
+
+-- 加载奴才军队大亨（先加载，再销毁自己）
 local function LoadNoobArmy()
-    loadstring(game:HttpGet("https://raw.githubusercontent.com/1457437247-a11y/-hub/refs/heads/main/NoobArmy.lua"))()
+    -- 先执行加载子脚本（独立线程，不受销毁影响）
+    task.spawn(function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/1457437247-a11y/-hub/refs/heads/main/NoobArmy.lua"))()
+    end)
+    -- 延迟一帧再销毁自己，确保子脚本已经开始加载
+    task.defer(DestroySelf)
 end
 
--- 加载午夜追踪者（使用你提供的链接）
+-- 加载午夜追踪者
 local function LoadMidnight()
-    loadstring(game:HttpGet("https://raw.githubusercontent.com/1457437247-a11y/-hub/refs/heads/main/Midnight.lua"))()
+    task.spawn(function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/1457437247-a11y/-hub/refs/heads/main/Midnight.lua"))()
+    end)
+    task.defer(DestroySelf)
 end
 
--- UI
+-- ========== 创建 UI ==========
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "GrapeLoader"
 ScreenGui.ResetOnSpawn = false
 ScreenGui.Parent = game:GetService("CoreGui")
+UIElements.ScreenGui = ScreenGui
 
 local MainFrame = Instance.new("Frame")
 MainFrame.Size = UDim2.new(0, 260, 0, 200)
@@ -39,6 +68,7 @@ local corner = Instance.new("UICorner")
 corner.CornerRadius = UDim.new(0,12)
 corner.Parent = MainFrame
 MainFrame.Parent = ScreenGui
+UIElements.MainFrame = MainFrame
 
 local TitleBar = Instance.new("Frame")
 TitleBar.Size = UDim2.new(1,0,0,40)
@@ -49,6 +79,7 @@ local titleCorner = Instance.new("UICorner")
 titleCorner.CornerRadius = UDim.new(0,12)
 titleCorner.Parent = TitleBar
 TitleBar.Parent = MainFrame
+UIElements.TitleBar = TitleBar
 
 local TitleLabel = Instance.new("TextLabel")
 TitleLabel.Size = UDim2.new(0.7,0,1,0)
@@ -60,6 +91,7 @@ TitleLabel.TextSize = 18
 TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
 TitleLabel.Position = UDim2.new(0,15,0,0)
 TitleLabel.Parent = TitleBar
+UIElements.TitleLabel = TitleLabel
 
 local CloseBtn = Instance.new("TextButton")
 CloseBtn.Size = UDim2.new(0,30,0,30)
@@ -74,17 +106,20 @@ local closeCorner = Instance.new("UICorner")
 closeCorner.CornerRadius = UDim.new(0,6)
 closeCorner.Parent = CloseBtn
 CloseBtn.Parent = TitleBar
+UIElements.CloseBtn = CloseBtn
 
 local Container = Instance.new("Frame")
 Container.Size = UDim2.new(1,-20,1,-60)
 Container.Position = UDim2.new(0,10,0,50)
 Container.BackgroundTransparency = 1
 Container.Parent = MainFrame
+UIElements.Container = Container
 
 local UIListLayout = Instance.new("UIListLayout")
 UIListLayout.Padding = UDim.new(0,12)
 UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
 UIListLayout.Parent = Container
+UIElements.UIListLayout = UIListLayout
 
 local noobBtn = Instance.new("TextButton")
 noobBtn.Size = UDim2.new(1,0,0,50)
@@ -98,6 +133,7 @@ noobCorner.CornerRadius = UDim.new(0,8)
 noobCorner.Parent = noobBtn
 noobBtn.Parent = Container
 noobBtn.MouseButton1Click:Connect(LoadNoobArmy)
+UIElements.noobBtn = noobBtn
 
 local midBtn = Instance.new("TextButton")
 midBtn.Size = UDim2.new(1,0,0,50)
@@ -111,6 +147,7 @@ midCorner.CornerRadius = UDim.new(0,8)
 midCorner.Parent = midBtn
 midBtn.Parent = Container
 midBtn.MouseButton1Click:Connect(LoadMidnight)
+UIElements.midBtn = midBtn
 
 local fpsFrame = Instance.new("Frame")
 fpsFrame.Size = UDim2.new(1,0,0,35)
@@ -139,6 +176,7 @@ grapeLabel.TextSize = 12
 grapeLabel.TextXAlignment = Enum.TextXAlignment.Right
 grapeLabel.Parent = fpsFrame
 fpsFrame.Parent = Container
+UIElements.fpsFrame = fpsFrame
 
 local frameCount = 0
 local lastTime = tick()
@@ -176,6 +214,7 @@ end
 
 CloseBtn.MouseButton1Click:Connect(AnimateMenuHide)
 
+-- 🍇 悬浮按钮
 local FloatingBtn = Instance.new("TextButton")
 FloatingBtn.Size = UDim2.new(0,65,0,65)
 FloatingBtn.Position = UDim2.new(1,-80,0,100)
@@ -193,6 +232,7 @@ btnStroke.Color = Color3.fromRGB(150,150,200)
 btnStroke.Thickness = 1
 btnStroke.Parent = FloatingBtn
 FloatingBtn.Parent = ScreenGui
+UIElements.FloatingBtn = FloatingBtn
 
 local dragging = false
 local dragStart, startPos
@@ -218,4 +258,4 @@ FloatingBtn.MouseButton1Click:Connect(function()
     if MainFrame.Visible then AnimateMenuHide() else AnimateMenuShow() end
 end)
 
-print("✅ 葡萄加载器已启动 | 点击🍇选择脚本")
+print("✅ 葡萄加载器 v2.0 已启动 | 点击按钮后加载器会完全消失，子脚本独立运行")

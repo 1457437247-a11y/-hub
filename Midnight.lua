@@ -1,7 +1,7 @@
 --[[
     午夜追踪者 v0.1.2 完整版
     功能：清除NPC车辆、速度修改、自动开始比赛、瞬间完成比赛
-    UI：🍇可拖动悬浮按钮 + 完整菜单
+    UI：🍇可拖动悬浮按钮 + 弹出菜单
 ]]
 
 local Players = game:GetService("Players")
@@ -107,7 +107,7 @@ RunService.Heartbeat:Connect(function()
     if Settings.AutoRace then AutoStartRace() end
 end)
 
--- UI
+-- ========== UI（带🍇悬浮按钮） ==========
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "MidnightUI"
 ScreenGui.ResetOnSpawn = false
@@ -120,7 +120,7 @@ MainFrame.BackgroundColor3 = Color3.fromRGB(20,20,30)
 MainFrame.BackgroundTransparency = 0.15
 MainFrame.BorderSizePixel = 0
 MainFrame.ClipsDescendants = true
-MainFrame.Visible = true
+MainFrame.Visible = false  -- 初始隐藏，点击🍇才显示
 local corner = Instance.new("UICorner")
 corner.CornerRadius = UDim.new(0,12)
 corner.Parent = MainFrame
@@ -326,4 +326,47 @@ RunService.RenderStepped:Connect(function()
     end
 end)
 
-print("✅ 午夜追踪者 v0.1.2 已加载")
+-- 🍇 悬浮按钮（控制菜单显示/隐藏）
+local FloatingBtn = Instance.new("TextButton")
+FloatingBtn.Size = UDim2.new(0,65,0,65)
+FloatingBtn.Position = UDim2.new(1,-80,0,100)
+FloatingBtn.BackgroundColor3 = Color3.fromRGB(80,80,120)
+FloatingBtn.BackgroundTransparency = 0.2
+FloatingBtn.Text = "🍇"
+FloatingBtn.TextColor3 = Color3.fromRGB(255,255,255)
+FloatingBtn.Font = Enum.Font.GothamBold
+FloatingBtn.TextSize = 30
+local btnCorner = Instance.new("UICorner")
+btnCorner.CornerRadius = UDim.new(1,0)
+btnCorner.Parent = FloatingBtn
+local btnStroke = Instance.new("UIStroke")
+btnStroke.Color = Color3.fromRGB(150,150,200)
+btnStroke.Thickness = 1
+btnStroke.Parent = FloatingBtn
+FloatingBtn.Parent = ScreenGui
+
+local dragging = false
+local dragStart, startPos
+FloatingBtn.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = true
+        dragStart = input.Position
+        startPos = FloatingBtn.Position
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then dragging = false end
+        end)
+    end
+end)
+UserInputService.InputChanged:Connect(function(input)
+    if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+        local delta = input.Position - dragStart
+        local newX = math.clamp(startPos.X.Offset + delta.X, 0, Camera.ViewportSize.X - FloatingBtn.AbsoluteSize.X)
+        local newY = math.clamp(startPos.Y.Offset + delta.Y, 0, Camera.ViewportSize.Y - FloatingBtn.AbsoluteSize.Y)
+        FloatingBtn.Position = UDim2.new(0, newX, 0, newY)
+    end
+end)
+FloatingBtn.MouseButton1Click:Connect(function()
+    MainFrame.Visible = not MainFrame.Visible
+end)
+
+print("✅ 午夜追踪者 v0.1.2 已加载 | 点击🍇打开菜单")

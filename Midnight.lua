@@ -1,6 +1,6 @@
 --[[
-    午夜追踪者 v2.1 (PE手机版)
-    功能：自动加速（无需按键）、清除NPC车辆、自动比赛、瞬间完成
+    午夜追踪者 v2.2 (PE手机版) - 新增：无限氮气 + 车辆无敌
+    功能：清除NPC车辆、自动加速、自动比赛、瞬间完成、无限氮气、车辆无敌
     UI：🍇可拖动悬浮按钮 + 弹出菜单
 ]]
 
@@ -17,6 +17,8 @@ local Settings = {
     SpeedHack = false,
     AutoRace = false,
     InstantFinish = false,
+    InfiniteNOS = false,      -- 新增：无限氮气
+    VehicleGodMode = false,   -- 新增：车辆无敌
 }
 local SpeedMultiplier = 8
 local PlayerVehicle = nil
@@ -74,6 +76,63 @@ local function ApplySpeedHack()
     end
 end
 
+-- 无限氮气
+local function ApplyInfiniteNOS()
+    local vehicle = getVehicle()
+    if not vehicle then return end
+    -- 查找车辆中与氮气相关的属性或值
+    for _, v in ipairs(vehicle:GetDescendants()) do
+        if v:IsA("NumberValue") or v:IsA("IntValue") then
+            local name = (v.Name or ""):lower()
+            if name:find("nitro") or name:find("nos") or name:find("boost") or name:find("氮气") then
+                v.Value = 999999
+            end
+        end
+        if v:IsA("Attribute") or v:IsA("NumberValue") then
+            if v:GetAttribute("Nitrous") or v:GetAttribute("NOS") or v:GetAttribute("Boost") then
+                v:SetAttribute("Nitrous", 999999)
+                v:SetAttribute("NOS", 999999)
+                v:SetAttribute("Boost", 999999)
+            end
+        end
+    end
+    -- 查找工具中的氮气
+    local char = LocalPlayer.Character
+    if char then
+        for _, tool in ipairs(char:GetChildren()) do
+            if tool:IsA("Tool") then
+                for _, child in ipairs(tool:GetDescendants()) do
+                    if child:IsA("NumberValue") and (child.Name:lower():find("nitro") or child.Name:lower():find("nos") or child.Name:lower():find("boost")) then
+                        child.Value = 999999
+                    end
+                end
+            end
+        end
+    end
+end
+
+-- 车辆无敌
+local function ApplyVehicleGodMode()
+    local vehicle = getVehicle()
+    if not vehicle then return end
+    -- 查找车辆血量相关属性
+    for _, v in ipairs(vehicle:GetDescendants()) do
+        if v:IsA("NumberValue") or v:IsA("IntValue") then
+            local name = (v.Name or ""):lower()
+            if name:find("health") or name:find("hp") or name:find("durability") or name:find("damage") or name:find("生命") or name:find("耐久") then
+                v.Value = 999999
+            end
+        end
+        if v:IsA("Attribute") or v:IsA("NumberValue") then
+            if v:GetAttribute("Health") or v:GetAttribute("HP") or v:GetAttribute("Durability") then
+                v:SetAttribute("Health", 999999)
+                v:SetAttribute("HP", 999999)
+                v:SetAttribute("Durability", 999999)
+            end
+        end
+    end
+end
+
 -- 瞬间完成比赛
 local function InstantFinishRace()
     for _, v in ipairs(workspace:GetDescendants()) do
@@ -111,6 +170,8 @@ RunService.Heartbeat:Connect(function()
     PlayerVehicle = getVehicle()
     if Settings.RemoveNPCs then RemoveNPCVehicles() end
     if Settings.SpeedHack then ApplySpeedHack() end
+    if Settings.InfiniteNOS then ApplyInfiniteNOS() end
+    if Settings.VehicleGodMode then ApplyVehicleGodMode() end
     if Settings.InstantFinish then InstantFinishRace() end
     if Settings.AutoRace then AutoStartRace() end
 end)
@@ -122,8 +183,8 @@ ScreenGui.ResetOnSpawn = false
 ScreenGui.Parent = game:GetService("CoreGui")
 
 local MainFrame = Instance.new("Frame")
-MainFrame.Size = UDim2.new(0, 280, 0, 340)
-MainFrame.Position = UDim2.new(0.5, -140, 0.5, -170)
+MainFrame.Size = UDim2.new(0, 280, 0, 420)  -- 拉高以容纳新功能
+MainFrame.Position = UDim2.new(0.5, -140, 0.5, -210)
 MainFrame.BackgroundColor3 = Color3.fromRGB(20,20,30)
 MainFrame.BackgroundTransparency = 0.15
 MainFrame.BorderSizePixel = 0
@@ -151,7 +212,7 @@ TitleBar.Parent = MainFrame
 local TitleLabel = Instance.new("TextLabel")
 TitleLabel.Size = UDim2.new(0.6,0,1,0)
 TitleLabel.BackgroundTransparency = 1
-TitleLabel.Text = "🌙 午夜追踪者 v2.1"
+TitleLabel.Text = "🌙 午夜追踪者 v2.2"
 TitleLabel.TextColor3 = Color3.fromRGB(255,255,255)
 TitleLabel.Font = Enum.Font.GothamBold
 TitleLabel.TextSize = 16
@@ -250,6 +311,8 @@ end
 
 CreateToggleOption("🗑️ 清除NPC车辆", function() return Settings.RemoveNPCs end, function(v) Settings.RemoveNPCs = v end, "🚗")
 CreateToggleOption("⚡ 自动加速(PE版)", function() return Settings.SpeedHack end, function(v) Settings.SpeedHack = v end, "🏎️")
+CreateToggleOption("🚀 无限氮气", function() return Settings.InfiniteNOS end, function(v) Settings.InfiniteNOS = v end, "💨")
+CreateToggleOption("🛡️ 车辆无敌", function() return Settings.VehicleGodMode end, function(v) Settings.VehicleGodMode = v end, "🛡️")
 CreateToggleOption("🏁 自动开始比赛", function() return Settings.AutoRace end, function(v) Settings.AutoRace = v end, "🎮")
 CreateToggleOption("✨ 瞬间完成比赛", function() return Settings.InstantFinish end, function(v) Settings.InstantFinish = v end, "🏆")
 
@@ -377,4 +440,4 @@ FloatingBtn.MouseButton1Click:Connect(function()
     MainFrame.Visible = not MainFrame.Visible
 end)
 
-print("✅ 午夜追踪者 v2.1 已加载 | 点击🍇打开菜单 | 开启'自动加速'后车辆自动提速")
+print("✅ 午夜追踪者 v2.2 已加载 | 新增：无限氮气 + 车辆无敌 | 点击🍇打开菜单")

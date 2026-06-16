@@ -1,7 +1,7 @@
 --[[
-    葡萄加载器 v1.0
-    功能：选择加载奴才军队大亨或午夜追踪者 v2.1
-    点击后：只加载子脚本，不销毁自身
+    葡萄加载器 v2.2
+    功能：选择加载奴才军队大亨 v0.3.0 或午夜追踪者 v2.1
+    点击后只加载脚本，不销毁自身
 ]]
 
 local Players = game:GetService("Players")
@@ -14,7 +14,7 @@ local LocalPlayer = Players.LocalPlayer
 -- 保存所有UI元素
 local UIElements = {}
 
--- 加载奴才军队大亨
+-- 加载奴才军队大亨 v0.3.0
 local function LoadNoobArmy()
     pcall(function()
         loadstring(game:HttpGet("https://raw.githubusercontent.com/1457437247-a11y/-hub/refs/heads/main/NoobArmy.lua"))()
@@ -63,7 +63,7 @@ UIElements.TitleBar = TitleBar
 local TitleLabel = Instance.new("TextLabel")
 TitleLabel.Size = UDim2.new(0.7,0,1,0)
 TitleLabel.BackgroundTransparency = 1
-TitleLabel.Text = "🍇 葡萄加载器 v1.0"
+TitleLabel.Text = "🍇 葡萄加载器 v2.2"
 TitleLabel.TextColor3 = Color3.fromRGB(255,255,255)
 TitleLabel.Font = Enum.Font.GothamBold
 TitleLabel.TextSize = 18
@@ -103,7 +103,7 @@ UIElements.UIListLayout = UIListLayout
 local noobBtn = Instance.new("TextButton")
 noobBtn.Size = UDim2.new(1,0,0,50)
 noobBtn.BackgroundColor3 = Color3.fromRGB(200,100,50)
-noobBtn.Text = "👑 奴才军队大亨 v0.2.6"
+noobBtn.Text = "👑 奴才军队大亨 v0.3.0"
 noobBtn.TextColor3 = Color3.fromRGB(255,255,255)
 noobBtn.Font = Enum.Font.GothamBold
 noobBtn.TextSize = 16
@@ -237,4 +237,4 @@ FloatingBtn.MouseButton1Click:Connect(function()
     if MainFrame.Visible then AnimateMenuHide() else AnimateMenuShow() end
 end)
 
-print("✅ 葡萄加载器 v1.0 已启动 | 午夜追踪者 v2.1 已关联 | 点击按钮加载脚本，加载器不会消失")
+print("✅ 葡萄加载器 v2.2 已启动 | 奴才军队大亨 v0.3.0 | 午夜追踪者 v2.1")
